@@ -18,8 +18,8 @@ cat *.txt | grep "noodles" | shout.py
 * License
 MIT
 * Roadmap
-** TODO implement CLI switches for settings
-** TODO implement config file
-** TODO package for homebrew
-** TODO package for scoop/choco
-** TODO package for Linux (pacman, apt)
+- [ ] implement CLI switches for settings
+- [ ] implement config file
+- [ ] package for homebrew
+- [ ] package for scoop/choco
+- [ ] package for Linux (pacman, apt)
