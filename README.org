@@ -1,0 +1,22 @@
+#+TITLE: Shout
+#+SUBTITLE: Display text in the GUI directly from the CLI
+* Installation
+For now, just clone this repo and use shout.py directly
+* Usage
+Shout will display text direct from the command line via STDIN
+** Examples:
+#+BEGIN_SRC
+echo "Hello world!" | shout.py
+#+END_SRC
+
+#+BEGIN_SRC
+cat *.txt | grep "noodles" | shout.py
+#+END_SRC
+* License
+MIT
+* Roadmap
+** TODO implement CLI switches for settings
+** TODO implement config file
+** TODO package for homebrew
+** TODO package for scoop/choco
+** TODO package for Linux (pacman, apt)
