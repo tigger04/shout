@@ -12,6 +12,9 @@ echo "Hello world!" | shout.py
 #+BEGIN_SRC
 cat *.txt | grep "noodles" | shout.py
 #+END_SRC
+* Requirements
+- Python 3.x
+- PyQt5
 * License
 MIT
 * Roadmap
