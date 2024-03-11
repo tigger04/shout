@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 import sys, signal, math, argparse
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
+# try:
+#     from PyQt import QtWidgets, QtGui, QtCore
+# except ImportError:
+#     from PyQt5 import QtWidgets, QtGui, QtCore
+
+from PyQt5.QtWidgets import QTextEdit, QApplication, QMainWindow
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QFontDatabase
-from PyQt5.QtWidgets import QGraphicsOpacityEffect
-from PyQt5.QtCore import QPropertyAnimation
+# from PyQt5.QtGui import QFontDatabase
+# from PyQt5.QtWidgets import QGraphicsOpacityEffect
+# from PyQt5.QtCore import QPropertyAnimation
 
 # aliases
 ceil = math.ceil
@@ -62,7 +67,9 @@ class ShoutText(QTextEdit):
             debug("auto close duration is set to 0, not closing automatically")
 
     def setText(self, text):
-        super(ShoutText, self).setText(text.rstrip('\n'))
+        the_text = text.rstrip()
+        debug(f"ShoutText.setText: {the_text}")
+        super(ShoutText, self).setText(the_text)
         # QApplication.processEvents()  # Process all pending events - needed as layout updated asynchronously
         # self.resize_window()
         QTimer.singleShot(0, self.resize_window)  # Delay the resizing
@@ -75,6 +82,7 @@ class ShoutText(QTextEdit):
 
         # Calculate the width of the longest line
         lines = self.toPlainText().split('\n')
+        debug(f"ShoutText.resize_window: len(lines) is {len(lines)}")
         font_metrics = QFontMetrics(self.font)
         max_width = max(font_metrics.horizontalAdvance(line) for line in lines)
 
@@ -85,10 +93,14 @@ class ShoutText(QTextEdit):
         screen_width_max = (max_screen_width_ratio * app.desktop().screenGeometry().width())  # Get the screen width
         screen_height_max = (max_screen_height_ratio * app.desktop().screenGeometry().height())  # Get the screen height
 
-        doc_height = doc().size().height()
+        doc_height = len(lines) * self.font.pixelSize()  # Calculate the height of the document
+        # doc_height = doc().size().height()
+        debug(f"ShoutText.resize_window: doc_height is {doc_height}")
 
         self.window.setFixedHeight(int(min(ceil(doc_height), screen_height_max)))
         self.window.setFixedWidth(int(min(ceil(max_width), screen_width_max)))
+
+        debug(f"ShoutText.resize_window: window size is {win.size().width()} x {win.size().height()}")
 
         # Center the window on the screen
         screen_geometry = app.desktop().screenGeometry()
@@ -122,7 +134,6 @@ window.setWindowFlags(Qt.FramelessWindowHint)
 
 # Create a QTextEdit widget to display the text
 text_widget = ShoutText(window)
-
 
 
 debug("args.text is " + str(args.text))
