@@ -12,6 +12,7 @@ from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtCore import QTimer
 # from PyQt5.QtGui import QFontDatabase
 # from PyQt5.QtWidgets import QGraphicsOpacityEffect
+# from PyQt5.QtWidgets import QGraphicsBlurEffect # *****************
 # from PyQt5.QtCore import QPropertyAnimation
 
 # aliases
@@ -68,6 +69,11 @@ class ShoutText(QTextEdit):
             QTimer.singleShot(args.timeout * 1000, window.close)
         else:
             debug("auto close duration is set to 0, not closing automatically")
+        
+        self.textChanged.connect(self.resize_window)
+    
+    def resizeEvent(self, event):
+        self.resize_window()
 
     def setText(self, text):
         the_text = text.rstrip()
@@ -75,41 +81,58 @@ class ShoutText(QTextEdit):
         super(ShoutText, self).setText(the_text)
         # QApplication.processEvents()  # Process all pending events - needed as layout updated asynchronously
         # self.resize_window()
-        QTimer.singleShot(0, self.resize_window)  # Delay the resizing
+        # QTimer.singleShot(0, self.resize_window)  # Delay the resizing
 
     def resize_window(self):
         debug("ShoutText.resize_window")
 
         doc = self.document()
         win = self.window
+        margins = self.contentsMargins()
 
         # Calculate the width of the longest line
+        ## important to set the text width before calculating the height ##
+
         lines = self.toPlainText().split('\n')
         debug(f"ShoutText.resize_window: len(lines) is {len(lines)}")
-        font_metrics = QFontMetrics(self.font)
+        # font_metrics = QFontMetrics(self.font)
         # max_width = max(font_metrics.horizontalAdvance(line) for line in lines)
         # max_width = max(font_metrics.width(line) for line in lines)
-        max_width = doc.idealWidth()
+        max_width = ceil(doc.idealWidth() + margins.left() + margins.right()) + 20 # a very ugly hack to compensate for idealWidth's paltry performance on short lines
+        screen_width_max = floor(max_screen_width_ratio * app.desktop().screenGeometry().width())  # Get the screen width
+
+        doc.setTextWidth(int(min(max_width, screen_width_max)))
+        win.setFixedWidth(int(min(max_width, screen_width_max)))
+
+        # self.window.setFixedWidth(int(min(ceil(max_width), screen_width_max)))
         # max_width = doc.textWidth()
 
-        screen_width_max = (max_screen_width_ratio * app.desktop().screenGeometry().width())  # Get the screen width
-        screen_height_max = (max_screen_height_ratio * app.desktop().screenGeometry().height())  # Get the screen height
+        max_height = self.document().size().height() + margins.top() + margins.bottom()
+        screen_height_max = floor(max_screen_height_ratio * app.desktop().screenGeometry().height())  # Get the screen height
+        self.window.setFixedHeight(int(min(max_height, screen_height_max)))
 
         # max_height = doc.size().height()
         # debug(f"self.font.pixelSize() is {self.font.pixelSize()}")
         # max_height = len(lines) * self.font.pixelSize()  # Calculate the height of the document
-        max_height = doc.size().height()
-        debug(f"ShoutText.resize_window: doc_height is {max_height}")
+        # max_height = doc.size().height()
+
+        # debug(f"ShoutText.resize_window: doc_height is {max_height}")
+
+        # If the last character is a newline, subtract the height of one line
+        # if self.toPlainText()[-1] == '\n' or self.toPlainText()[-1] == ' ':
+        #     line_height = font_metrics.lineSpacing()
+        #     max_height -= line_height
 
         # Add the document margin to the width
-        margin = doc.documentMargin()
+        # margin = doc.documentMargin()
         # max_width += (2 * margin)  # Add the margin to both sides
-        max_height += (2 * margin)  # Add the margin to both sides
+        # max_height += (2 * margin)  # Add the margin to both sides
 
-        self.window.setFixedHeight(int(min(ceil(max_height), screen_height_max)))
-        self.window.setFixedWidth(int(min(ceil(max_width), screen_width_max)))
+        # self.window.setFixedHeight(int(min(ceil(max_height), screen_height_max)))
+        # self.window.setFixedWidth(int(min(ceil(max_width), screen_width_max)))
 
         debug(f"ShoutText.resize_window: window size is {win.size().width()} x {win.size().height()}")
+        debug(f"ShoutText.resize_window: doc size is {doc.size().width()} x {doc.size().height()}")
 
         # Center the window on the screen
         screen_geometry = app.desktop().screenGeometry()
