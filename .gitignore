@@ -1,0 +1,10 @@
+.DS_Store
+._DS_Store
+*~
+.trash/
+.Trash/
+**/.mypy_cache/
+**/__pycache__/
+*.bak
+build/
+dist/

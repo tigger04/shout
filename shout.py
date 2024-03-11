@@ -56,9 +56,12 @@ class ShoutText(QTextEdit):
         self.document().setDocumentMargin(text_margin)
         self.setReadOnly(True)
 
+        window.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus)
+        window.setAttribute(Qt.WA_ShowWithoutActivating)  # Show the window without activating it
+
         if args.floating:
             # Set the window to stay on top of all others
-            window.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+            window.setWindowFlags(window.windowFlags() | Qt.WindowStaysOnTopHint)
 
         if args.timeout > 0:
             debug(f"setting auto close duration to {args.timeout} ms")
