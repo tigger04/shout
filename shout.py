@@ -87,20 +87,23 @@ class ShoutText(QTextEdit):
         lines = self.toPlainText().split('\n')
         debug(f"ShoutText.resize_window: len(lines) is {len(lines)}")
         font_metrics = QFontMetrics(self.font)
-        max_width = max(font_metrics.horizontalAdvance(line) for line in lines)
+        # max_width = max(font_metrics.horizontalAdvance(line) for line in lines)
+        # max_width = max(font_metrics.width(line) for line in lines)
+        max_width = doc.idealWidth()
+        # max_width = doc.textWidth()
 
         screen_width_max = (max_screen_width_ratio * app.desktop().screenGeometry().width())  # Get the screen width
         screen_height_max = (max_screen_height_ratio * app.desktop().screenGeometry().height())  # Get the screen height
 
-        max_height = doc.size().height()
+        # max_height = doc.size().height()
         # debug(f"self.font.pixelSize() is {self.font.pixelSize()}")
-        # doc_height = len(lines) * self.font.pixelSize()  # Calculate the height of the document
-        # doc_height = doc().size().height()
+        # max_height = len(lines) * self.font.pixelSize()  # Calculate the height of the document
+        max_height = doc.size().height()
         debug(f"ShoutText.resize_window: doc_height is {max_height}")
 
         # Add the document margin to the width
         margin = doc.documentMargin()
-        max_width += (2 * margin)  # Add the margin to both sides
+        # max_width += (2 * margin)  # Add the margin to both sides
         max_height += (2 * margin)  # Add the margin to both sides
 
         self.window.setFixedHeight(int(min(ceil(max_height), screen_height_max)))
