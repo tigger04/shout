@@ -77,7 +77,7 @@ class ShoutText(QTextEdit):
     def resize_window(self):
         debug("ShoutText.resize_window")
 
-        doc = self.document
+        doc = self.document()
         win = self.window
 
         # Calculate the width of the longest line
@@ -87,13 +87,15 @@ class ShoutText(QTextEdit):
         max_width = max(font_metrics.horizontalAdvance(line) for line in lines)
 
         # Add the document margin to the width
-        margin = doc().documentMargin()
+        margin = doc.documentMargin()
         max_width += (2 * margin)  # Add the margin to both sides
 
         screen_width_max = (max_screen_width_ratio * app.desktop().screenGeometry().width())  # Get the screen width
         screen_height_max = (max_screen_height_ratio * app.desktop().screenGeometry().height())  # Get the screen height
 
-        doc_height = len(lines) * self.font.pixelSize()  # Calculate the height of the document
+        # debug(f"self.font.pixelSize() is {self.font.pixelSize()}")
+        # doc_height = len(lines) * self.font.pixelSize()  # Calculate the height of the document
+        doc_height = doc.size().height()
         # doc_height = doc().size().height()
         debug(f"ShoutText.resize_window: doc_height is {doc_height}")
 
