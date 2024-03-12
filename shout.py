@@ -98,6 +98,7 @@ class ShoutText(QTextEdit):
         # font_metrics = QFontMetrics(self.font)
         # max_width = max(font_metrics.horizontalAdvance(line) for line in lines)
         # max_width = max(font_metrics.width(line) for line in lines)
+        self.setLineWrapMode(QTextEdit.NoWrap)
         max_width = ceil(doc.idealWidth() + margins.left() + margins.right()) + 20 # a very ugly hack to compensate for idealWidth's paltry performance on short lines
         screen_width_max = floor(max_screen_width_ratio * app.desktop().screenGeometry().width())  # Get the screen width
 
@@ -187,6 +188,7 @@ window.setCentralWidget(text_widget)
 
 # Show the QMainWindow
 window.show()
+window.clearFocus()
 
 # Start the QApplication event loop
 sys.exit(app.exec_())
