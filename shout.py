@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import sys, signal, math, argparse
+import os, sys, signal, math, argparse, platform
+
 # try:
 #     from PyQt import QtWidgets, QtGui, QtCore
 # except ImportError:
@@ -8,8 +9,10 @@ import sys, signal, math, argparse
 from PyQt5.QtWidgets import QTextEdit, QApplication, QMainWindow
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFontMetrics
+# from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import Qt
+
 # from PyQt5.QtGui import QFontDatabase
 # from PyQt5.QtWidgets import QGraphicsOpacityEffect
 # from PyQt5.QtWidgets import QGraphicsBlurEffect # *****************
@@ -21,13 +24,21 @@ floor = math.floor
 
 # Create an argument parser
 parser = argparse.ArgumentParser()
-parser.add_argument('--timeout', '-t', type=int, default=0, help='Set timeout value')
-parser.add_argument('--debug', '-d', action='store_true', default=False, help=argparse.SUPPRESS)
-parser.add_argument('--floating', '-f', action='store_true', default=False, help='Floating window')
-parser.add_argument('--opacity', '-o', type=float, default=0.8, help='Set window opacity')
-parser.add_argument('--font', '-F', type=str, default="menlo", help='Set font')
-parser.add_argument('--size', '-s', type=int, default=24, help='Set font size')
-parser.add_argument('text', nargs='?', type=str, help="Text to display, or '-' to read from STDIN")
+parser.add_argument("--timeout", "-t", type=int, default=0, help="Set timeout value")
+parser.add_argument(
+    "--debug", "-d", action="store_true", default=False, help=argparse.SUPPRESS
+)
+parser.add_argument(
+    "--floating", "-f", action="store_true", default=False, help="Floating window"
+)
+parser.add_argument(
+    "--opacity", "-o", type=float, default=0.8, help="Set window opacity"
+)
+parser.add_argument("--font", "-F", type=str, default="menlo", help="Set font")
+parser.add_argument("--size", "-s", type=int, default=24, help="Set font size")
+parser.add_argument(
+    "text", nargs="?", type=str, help="Text to display, or '-' to read from STDIN"
+)
 args = parser.parse_args()
 
 # parameters and defaults
@@ -40,9 +51,11 @@ fade_out_duration = 1000  # TODO
 
 import inspect
 
+
 def debug(debug_item):
     if args.debug:
         print(f"DEBUG: {debug_item}")
+
 
 class ShoutText(QTextEdit):
     def __init__(self, parent=None):
@@ -50,15 +63,10 @@ class ShoutText(QTextEdit):
 
         self.window = parent
 
-        self.font = QFont(
-            args.font, args.size
-        )
+        self.font = QFont(args.font, args.size)
         self.setFont(self.font)
         self.document().setDocumentMargin(text_margin)
         self.setReadOnly(True)
-
-        window.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus)
-        window.setAttribute(Qt.WA_ShowWithoutActivating)  # Show the window without activating it
 
         if args.floating:
             # Set the window to stay on top of all others
@@ -69,9 +77,23 @@ class ShoutText(QTextEdit):
             QTimer.singleShot(args.timeout * 1000, window.close)
         else:
             debug("auto close duration is set to 0, not closing automatically")
-        
+
+        window.setAttribute(
+            Qt.WA_ShowWithoutActivating
+        )  # Show the window without activating it
+        window.setWindowFlags(
+            Qt.FramelessWindowHint
+            | Qt.WindowDoesNotAcceptFocus
+            | Qt.WindowSystemMenuHint
+            | Qt.BypassWindowManagerHint
+            | Qt.CustomizeWindowHint
+        )
+
+        self.setFocusPolicy(Qt.NoFocus)
+        window.setFocusPolicy(Qt.NoFocus)
+
         self.textChanged.connect(self.resize_window)
-    
+
     def resizeEvent(self, event):
         self.resize_window()
 
@@ -93,14 +115,18 @@ class ShoutText(QTextEdit):
         # Calculate the width of the longest line
         ## important to set the text width before calculating the height ##
 
-        lines = self.toPlainText().split('\n')
+        lines = self.toPlainText().split("\n")
         debug(f"ShoutText.resize_window: len(lines) is {len(lines)}")
         # font_metrics = QFontMetrics(self.font)
         # max_width = max(font_metrics.horizontalAdvance(line) for line in lines)
         # max_width = max(font_metrics.width(line) for line in lines)
         self.setLineWrapMode(QTextEdit.NoWrap)
-        max_width = ceil(doc.idealWidth() + margins.left() + margins.right()) + 20 # a very ugly hack to compensate for idealWidth's paltry performance on short lines
-        screen_width_max = floor(max_screen_width_ratio * app.desktop().screenGeometry().width())  # Get the screen width
+        max_width = (
+            ceil(doc.idealWidth() + margins.left() + margins.right()) + 20
+        )  # a very ugly hack to compensate for idealWidth's paltry performance on short lines
+        screen_width_max = floor(
+            max_screen_width_ratio * app.desktop().screenGeometry().width()
+        )  # Get the screen width
 
         doc.setTextWidth(int(min(max_width, screen_width_max)))
         win.setFixedWidth(int(min(max_width, screen_width_max)))
@@ -109,7 +135,9 @@ class ShoutText(QTextEdit):
         # max_width = doc.textWidth()
 
         max_height = self.document().size().height() + margins.top() + margins.bottom()
-        screen_height_max = floor(max_screen_height_ratio * app.desktop().screenGeometry().height())  # Get the screen height
+        screen_height_max = floor(
+            max_screen_height_ratio * app.desktop().screenGeometry().height()
+        )  # Get the screen height
         self.window.setFixedHeight(int(min(max_height, screen_height_max)))
 
         # max_height = doc.size().height()
@@ -132,8 +160,12 @@ class ShoutText(QTextEdit):
         # self.window.setFixedHeight(int(min(ceil(max_height), screen_height_max)))
         # self.window.setFixedWidth(int(min(ceil(max_width), screen_width_max)))
 
-        debug(f"ShoutText.resize_window: window size is {win.size().width()} x {win.size().height()}")
-        debug(f"ShoutText.resize_window: doc size is {doc.size().width()} x {doc.size().height()}")
+        debug(
+            f"ShoutText.resize_window: window size is {win.size().width()} x {win.size().height()}"
+        )
+        debug(
+            f"ShoutText.resize_window: doc size is {doc.size().width()} x {doc.size().height()}"
+        )
 
         # Center the window on the screen
         screen_geometry = app.desktop().screenGeometry()
@@ -141,6 +173,11 @@ class ShoutText(QTextEdit):
         center_point = screen_geometry.center()
         window_geometry.moveCenter(center_point)
         win.move(window_geometry.topLeft())
+    
+    def show(self):
+        super(ShoutText, self).show()
+        # QTimer.singleShot(1000, self.clearFocus)
+        # self.clearFocus()
 
 
 # Try to change the argv[0] value
@@ -154,7 +191,7 @@ except Exception:
 # Create a QApplication instance
 app = QApplication(sys.argv)
 app.setApplicationDisplayName(app_name)
-signal.signal(signal.SIGINT, signal.SIG_DFL) # Enable Ctrl-C to close the application
+signal.signal(signal.SIGINT, signal.SIG_DFL)  # Enable Ctrl-C to close the application
 
 # Create a QMainWindow instance
 window = QMainWindow()
@@ -175,7 +212,7 @@ debug("args.timeout is " + str(args.timeout))
 if args.text is None:
     print(parser.format_help())
     sys.exit(1)
-elif args.text == '-':
+elif args.text == "-":
     stdin_text = sys.stdin.read()
     text_widget.setText(stdin_text)
 else:
@@ -183,12 +220,10 @@ else:
 
 window.setCentralWidget(text_widget)
 
-# resize_window()
-
-
 # Show the QMainWindow
 window.show()
-window.clearFocus()
+# window.clearFocus()
+# window.setEnabled(False)
 
 # Start the QApplication event loop
 sys.exit(app.exec_())
